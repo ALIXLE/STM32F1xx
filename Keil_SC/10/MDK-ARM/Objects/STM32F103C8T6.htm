@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\STM32F103C8T6.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\STM32F103C8T6.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Sat Nov 05 21:31:36 2022
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Sun Nov 06 08:52:43 2022
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -298,11 +298,20 @@ Global Symbols
 <P><STRONG><a name="[a]"></a>DebugMon_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f10x_it.o(i.DebugMon_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_md.o(RESET)
 </UL>
-<P><STRONG><a name="[59]"></a>Delay_us</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, bsp_systick.o(i.Delay_us))
+<P><STRONG><a name="[5b]"></a>Delay_us</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, bsp_systick.o(i.Delay_us))
 <BR><BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[4d]"></a>GPIOC_Configuration</STRONG> (Thumb, 40 bytes, Stack size 0 bytes, bsp_gpio_configuration.o(i.GPIOC_Configuration))
+<P><STRONG><a name="[4d]"></a>GPIOA_USATR1_Configuration</STRONG> (Thumb, 120 bytes, Stack size 0 bytes, bsp_usart1.o(i.GPIOA_USATR1_Configuration))
+<BR><BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_APB2PeriphClockCmd
+<LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
+<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Init
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Cmd
+</UL>
+<BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[52]"></a>GPIOC_Configuration</STRONG> (Thumb, 40 bytes, Stack size 0 bytes, bsp_gpio_configuration.o(i.GPIOC_Configuration))
 <BR><BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_APB2PeriphClockCmd
 <LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
 </UL>
@@ -310,10 +319,11 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[4f]"></a>GPIO_Init</STRONG> (Thumb, 278 bytes, Stack size 0 bytes, stm32f10x_gpio.o(i.GPIO_Init))
-<BR><BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOC_Configuration
+<BR><BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOC_Configuration
+<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOA_USATR1_Configuration
 </UL>
 
-<P><STRONG><a name="[58]"></a>GPIO_WriteBit</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, stm32f10x_gpio.o(i.GPIO_WriteBit))
+<P><STRONG><a name="[5a]"></a>GPIO_WriteBit</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, stm32f10x_gpio.o(i.GPIO_WriteBit))
 <BR><BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -330,18 +340,18 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_md.o(RESET)
 </UL>
 <P><STRONG><a name="[4e]"></a>RCC_APB2PeriphClockCmd</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, stm32f10x_rcc.o(i.RCC_APB2PeriphClockCmd))
-<BR><BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Configuration
-<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOC_Configuration
+<BR><BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOC_Configuration
+<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOA_USATR1_Configuration
 </UL>
 
-<P><STRONG><a name="[54]"></a>RCC_GetClocksFreq</STRONG> (Thumb, 192 bytes, Stack size 0 bytes, stm32f10x_rcc.o(i.RCC_GetClocksFreq))
-<BR><BR>[Called By]<UL><LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Init
+<P><STRONG><a name="[55]"></a>RCC_GetClocksFreq</STRONG> (Thumb, 192 bytes, Stack size 0 bytes, stm32f10x_rcc.o(i.RCC_GetClocksFreq))
+<BR><BR>[Called By]<UL><LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Init
 </UL>
 
 <P><STRONG><a name="[9]"></a>SVC_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f10x_it.o(i.SVC_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_md.o(RESET)
 </UL>
-<P><STRONG><a name="[57]"></a>SysTick_Configuration</STRONG> (Thumb, 98 bytes, Stack size 0 bytes, bsp_systick.o(i.SysTick_Configuration))
+<P><STRONG><a name="[58]"></a>SysTick_Configuration</STRONG> (Thumb, 98 bytes, Stack size 0 bytes, bsp_systick.o(i.SysTick_Configuration))
 <BR><BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -349,46 +359,48 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_md.o(RESET)
 </UL>
 <P><STRONG><a name="[38]"></a>SystemInit</STRONG> (Thumb, 78 bytes, Stack size 0 bytes, system_stm32f10x.o(i.SystemInit))
-<BR><BR>[Calls]<UL><LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetSysClock
+<BR><BR>[Calls]<UL><LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetSysClock
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_md.o(.text)
 </UL>
-<P><STRONG><a name="[52]"></a>USART_Configuration</STRONG> (Thumb, 52 bytes, Stack size 0 bytes, bsp_usart.o(i.USART_Configuration))
-<BR><BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_APB2PeriphClockCmd
-<LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Init
-</UL>
-<BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<P><STRONG><a name="[51]"></a>USART_Cmd</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_Cmd))
+<BR><BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOA_USATR1_Configuration
 </UL>
 
-<P><STRONG><a name="[53]"></a>USART_Init</STRONG> (Thumb, 210 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_Init))
-<BR><BR>[Calls]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_GetClocksFreq
+<P><STRONG><a name="[50]"></a>USART_Init</STRONG> (Thumb, 210 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_Init))
+<BR><BR>[Calls]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_GetClocksFreq
 </UL>
-<BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Configuration
+<BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOA_USATR1_Configuration
+</UL>
+
+<P><STRONG><a name="[59]"></a>USART_SendData</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_SendData))
+<BR><BR>[Called By]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
 <P><STRONG><a name="[8]"></a>UsageFault_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f10x_it.o(i.UsageFault_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_md.o(RESET)
 </UL>
-<P><STRONG><a name="[56]"></a>WWDG_ClearFlag</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, stm32f10x_wwdg.o(i.WWDG_ClearFlag))
+<P><STRONG><a name="[57]"></a>WWDG_ClearFlag</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, stm32f10x_wwdg.o(i.WWDG_ClearFlag))
 <BR><BR>[Called By]<UL><LI><a href="#[d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WWDG_IRQHandler
 </UL>
 
 <P><STRONG><a name="[d]"></a>WWDG_IRQHandler</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, stm32f10x_it.o(i.WWDG_IRQHandler))
-<BR><BR>[Calls]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WWDG_SetCounter
-<LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WWDG_ClearFlag
+<BR><BR>[Calls]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WWDG_SetCounter
+<LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WWDG_ClearFlag
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_md.o(RESET)
 </UL>
-<P><STRONG><a name="[55]"></a>WWDG_SetCounter</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, stm32f10x_wwdg.o(i.WWDG_SetCounter))
+<P><STRONG><a name="[56]"></a>WWDG_SetCounter</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, stm32f10x_wwdg.o(i.WWDG_SetCounter))
 <BR><BR>[Called By]<UL><LI><a href="#[d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WWDG_IRQHandler
 </UL>
 
-<P><STRONG><a name="[44]"></a>main</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, main.o(i.main))
-<BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_WriteBit
-<LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Configuration
-<LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Configuration
-<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOC_Configuration
-<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Delay_us
+<P><STRONG><a name="[44]"></a>main</STRONG> (Thumb, 58 bytes, Stack size 0 bytes, main.o(i.main))
+<BR><BR>[Calls]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_WriteBit
+<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Configuration
+<LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOC_Configuration
+<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIOA_USATR1_Configuration
+<LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Delay_us
+<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_SendData
 </UL>
 <BR>[Called By]<UL><LI><a href="#[43]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
 </UL>
@@ -396,14 +408,14 @@ Global Symbols
 <H3>
 Local Symbols
 </H3>
-<P><STRONG><a name="[50]"></a>SetSysClock</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, system_stm32f10x.o(i.SetSysClock))
-<BR><BR>[Calls]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetSysClockTo72
+<P><STRONG><a name="[53]"></a>SetSysClock</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, system_stm32f10x.o(i.SetSysClock))
+<BR><BR>[Calls]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetSysClockTo72
 </UL>
 <BR>[Called By]<UL><LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
 </UL>
 
-<P><STRONG><a name="[51]"></a>SetSysClockTo72</STRONG> (Thumb, 214 bytes, Stack size 0 bytes, system_stm32f10x.o(i.SetSysClockTo72))
-<BR><BR>[Called By]<UL><LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetSysClock
+<P><STRONG><a name="[54]"></a>SetSysClockTo72</STRONG> (Thumb, 214 bytes, Stack size 0 bytes, system_stm32f10x.o(i.SetSysClockTo72))
+<BR><BR>[Called By]<UL><LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetSysClock
 </UL>
 <P>
 <H3>

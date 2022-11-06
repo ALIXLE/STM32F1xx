@@ -33,7 +33,7 @@
 ".\objects\bsp_systick.o"
 ".\objects\bsp_iwdg.o"
 ".\objects\bsp_wwdg.o"
-".\objects\bsp_usart.o"
+".\objects\bsp_usart1.o"
 --nodebug --strict --scatter ".\Objects\STM32F103C8T6.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

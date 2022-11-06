@@ -569,9 +569,9 @@
               <FilePath>..\User\BSP_WWDG.c</FilePath>
             </File>
             <File>
-              <FileName>BSP_USART.c</FileName>
+              <FileName>BSP_USART1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\BSP_USART.c</FilePath>
+              <FilePath>..\User\BSP_USART1.c</FilePath>
             </File>
           </Files>
         </Group>
