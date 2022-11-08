@@ -171,3 +171,9 @@ void USART1_IRQHandler(void) {
 		printf("%c\n", USART_ReceiveData(USART1) + 2);
 	}
 }
+
+void EXTI0_IRQHandler(void) {
+	
+	EXTI_ClearITPendingBit(EXTI_Line0);
+	
+}
