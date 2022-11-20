@@ -4,7 +4,7 @@
 #include "Key_Scan.h"
 
 
-int main(void) {
+int main() {
 	
 	// GPIOC 初始化
 	GPIOC_Configuration();

@@ -23,9 +23,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "BSP_SysTick.h"
-#include "BSP_WWDG.h"
 #include "stdio.h"
-#include "BSP_TIM2.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
@@ -161,11 +159,6 @@ void SysTick_Handler(void)
   * @}
   */
 
-void WWDG_IRQHandler(void) {
-	WWDG_SetCounter(WWDG_CNT);
-	WWDG_ClearFlag();
-}
-
 void USART1_IRQHandler(void) {
 
 	while(SET == USART_GetFlagStatus(USART1, USART_FLAG_RXNE)) {
@@ -290,16 +283,4 @@ void EXTI1_IRQHandler(void) {
 		//EXTI_ClearITPendingBit(EXTI_Line1);
 	}
 	
-}
-
-void TIM2_IRQHandler(void) {
-
-	if(SET == TIM_GetITStatus(TIM2, TIM_IT_Update)) {
-		Timer++;
-		if(Timer == 500) {
-			GPIOC->ODR ^= GPIO_Pin_13;
-			Timer = 0;
-		}
-		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-	}
 }

@@ -31,5 +31,4 @@
 .\objects\main.o: ..\Libraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_wwdg.h
 .\objects\main.o: ..\Libraries\STM32F10x_StdPeriph_Driver\inc\misc.h
 .\objects\main.o: ..\User\BSP_SysTick.h
-.\objects\main.o: ..\User\BSP_GPIOA_EXTI0.h
 .\objects\main.o: ..\User\BSP_GPIOA_EXTI1.h

@@ -1,7 +1,6 @@
 #include "main.h"
 #include "BSP_GPIO_Configuration.h"
 #include "BSP_SysTick.h"
-#include "BSP_GPIOA_EXTI0.h"
 #include "BSP_GPIOA_EXTI1.h"
 
 

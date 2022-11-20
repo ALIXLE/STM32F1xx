@@ -23,7 +23,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "BSP_SysTick.h"
-#include "BSP_WWDG.h"
 #include "stdio.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Template
@@ -159,11 +158,6 @@ void SysTick_Handler(void)
 /**
   * @}
   */
-
-void WWDG_IRQHandler(void) {
-	WWDG_SetCounter(WWDG_CNT);
-	WWDG_ClearFlag();
-}
 
 void USART1_IRQHandler(void) {
 

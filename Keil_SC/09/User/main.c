@@ -14,7 +14,7 @@ int main(void) {
 	Delay_us(1000000);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
 	Delay_us(1000000);
-		
+	
 	WWDG_Configuration(0x7F, 0x5F, WWDG_Prescaler_4);
 	
 	while(1) {

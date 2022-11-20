@@ -548,11 +548,6 @@
               <FileType>1</FileType>
               <FilePath>..\User\BSP_GPIO_Configuration.c</FilePath>
             </File>
-            <File>
-              <FileName>Key_Scan.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Key_Scan.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

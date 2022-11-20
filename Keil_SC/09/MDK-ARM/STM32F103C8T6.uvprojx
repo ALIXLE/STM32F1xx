@@ -539,29 +539,14 @@
               <FilePath>..\User\stm32f10x_it.c</FilePath>
             </File>
             <File>
-              <FileName>Delay.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Delay.c</FilePath>
-            </File>
-            <File>
               <FileName>BSP_GPIO_Configuration.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\BSP_GPIO_Configuration.c</FilePath>
             </File>
             <File>
-              <FileName>Key_Scan.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Key_Scan.c</FilePath>
-            </File>
-            <File>
               <FileName>BSP_SysTick.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\BSP_SysTick.c</FilePath>
-            </File>
-            <File>
-              <FileName>BSP_IWDG.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\BSP_IWDG.c</FilePath>
             </File>
             <File>
               <FileName>BSP_WWDG.c</FileName>

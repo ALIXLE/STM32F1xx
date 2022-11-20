@@ -29,7 +29,6 @@
 ".\objects\stm32f10x_it.o"
 ".\objects\delay.o"
 ".\objects\bsp_gpio_configuration.o"
-".\objects\key_scan.o"
 --nodebug --strict --scatter ".\Objects\STM32F103C8T6.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
