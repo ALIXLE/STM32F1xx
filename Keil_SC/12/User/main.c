@@ -9,9 +9,8 @@ int main(void) {
 	SysTick_Configuration();
 	GPIOA_USATR1_Configuration();
 	USART1_NVIC_Configuration();
-
 	
 	while(1) {
-		//
+		
 	}
 }

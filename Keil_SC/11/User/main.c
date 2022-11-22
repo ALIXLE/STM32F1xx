@@ -6,22 +6,14 @@
 
 int main(void) {
 	
-	unsigned int i = 0;
-	
 	SysTick_Configuration();
 	GPIOC_Configuration();
 	GPIOA_USATR1_Configuration();
 	
-	USART_SendString("Hello World!");
-	
 	while(1) {
-		//
-		USART_SendData(USART1, 0x41);
-		GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
-		Delay_us(1000000);
-		GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
-		Delay_us(1000000);
-		printf("i = %d -- ", i++);
-		printf("Hello World!\n");
+		// 方式一
+		USART_SendString("USART_SendString: Hello Wolrd\n");
+		// 方式二
+		printf("printf: Hello World!\n");
 	}
 }

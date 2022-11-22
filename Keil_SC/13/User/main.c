@@ -21,7 +21,7 @@ int main(void) {
 			Delay_us(1000000);
 		}
 		
-		// EFI	睡眠模式	任一中断唤醒
+		// WFI	睡眠模式	任一中断唤醒
 		__WFI();
 		
 		for(nCount = 0; nCount < 5; nCount++) {

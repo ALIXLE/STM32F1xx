@@ -35,7 +35,6 @@ void GPIOA_USATR1_Configuration() {
 }
 
 void USART_SendString(const unsigned char *pt) {
-	//
 	while(*pt)
 	{
 		// 确保发送缓冲区为空

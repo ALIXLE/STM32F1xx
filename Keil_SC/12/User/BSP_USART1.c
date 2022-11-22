@@ -30,8 +30,8 @@ void GPIOA_USATR1_Configuration() {
 
 	USART_Init(USART1, &USART_InitStructure);
 	
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 	USART_Cmd(USART1, ENABLE);
-	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);	
 	
 }
 

@@ -2,6 +2,8 @@
 
 数据参考来源:
 
+
+
 ### 01 开发环境搭建
 
 Windows 11 + C51V960A.exe + MDK534.exe
@@ -129,6 +131,8 @@ STM32F10x标准外设库下载（en.stsw-stm32054_v3-6-0_v3.6.0.zip）：https:/
 
     ​	Libraries文件夹 - `只读`选项
 
+
+
 ### 02 利用寄存器点亮 LED 灯
 
 例程说明:
@@ -155,7 +159,7 @@ GPIOC 引脚模式配置:
 
 ​	根据 STM32F103C8T6原理图.pdf 确认 LED 接在 GPIOC_13 引脚, 根据 STM32中文参考手册_V10.pdf -> 8.2.2 端口配置高寄存器(GPIOx_CRH) (x=A..E) 配置引脚模式为`通用推挽输出模式`.
 
-​	0~7 低位 8~15 高位	GPIOC_13 位于高位寄存器
+​	0\~7 低位 8\~15 高位	GPIOC_13 位于高位寄存器
 
 ​	端口配置高寄存器(GPIOx_CRH) CNF13 / MODE13 配置为 `0011` -- 通用推挽输出模式, 最大速度50MHz
 
@@ -248,6 +252,8 @@ void Delay(unsigned int nCount) {
 
 ```
 
+
+
 ### 03 利用库函数点亮 LED 灯
 
 例程说明:
@@ -325,6 +331,8 @@ void Delay_us(unsigned int nCount) {
 }
 
 ```
+
+
 
 ### 04 利用按键控制 LED 状态
 
@@ -497,6 +505,8 @@ void Delay_us(unsigned int nCount) {
 
 ```
 
+
+
 ### 05 呼吸灯
 
 例程说明:
@@ -550,6 +560,8 @@ void GPIOC_Configuration() {
 }
 
 ```
+
+
 
 ### 06 利用中断控制 LED 状态
 
@@ -666,6 +678,8 @@ void EXTI0_IRQHandler() {
 ```c
 #include <stm32f10x.h>
 
+extern unsigned long TimingDelay;
+
 void GPIOC_Configuration(void);
 void SysTick_Configuration(void);
 void Delay_us(unsigned long nCount);
@@ -686,8 +700,8 @@ int main(void) {
 }
 
 void SysTick_Configuration() {	// STK 初始化函数
-    while(SysTick_Config(72));	// 库函数完成 STK 使能(STK_CTRL低3位取值 111), 并装载值 72
-    SysTick->CTRL &= ~(1<<0);	// STK_CTRL 0位置0, 关闭计数, 使用时开启
+    while(SysTick_Config(72));	// 库函数完成 STK 使能(STK_CTRL低3位取值 111), 并装载值 72(取值依据: AHB时钟频率)
+    SysTick->CTRL &= ~(1<<0);	// STK_CTRL 0位置0, 关闭计数, 待使用前开启
 }
 void Delay_us(unsigned long nCount) {	// 延时函数
     TimingDelay = nCount;
@@ -712,6 +726,8 @@ void SysTick_Handler() {	// STK 中断函数, 当 STK 装载值减至 0 时会�
 }
 
 ```
+
+
 
 ### 08 IWDG 独立看门狗
 
@@ -747,7 +763,7 @@ void SysTick_Handler() {	// STK 中断函数, 当 STK 装载值减至 0 时会�
 
 ​			设置计数器的初始值, 此处取值 625.
 
-​			产生 IWDG 复位所需总时间:
+​			产生 IWDG 复位所需总时间T:
 
 ​				T(寄存器减一个数用时t * 减数的个数nCount) = t * nCount = 1.6 * 625 = 1000 us
 
@@ -757,6 +773,8 @@ void SysTick_Handler() {	// STK 中断函数, 当 STK 装载值减至 0 时会�
 
 ```c
 #include <stm32f10x.h>
+
+extern unsigned long TimingDelay;
 
 void SysTick_Configuration(void);
 void GPIOC_Configuration(void);
@@ -823,18 +841,56 @@ void SysTick_Handler() {
 
 ```
 
+
+
 ### 09 WWDG 窗口看门狗
 
 例程说明:
 
-
+​	验证 WWDG 工作流程
 
 原理:
+
+​	WWDG: 配置有 递减计数器值, 上窗口值, 当计数器值从设置值向下递减至上窗口值之前时, 不能进行重置计数器值(喂狗)操作, 当计数器值减至上窗口值与 0x40 之间时, 可以(必须)进行重置计数器值(喂狗)操作, 当计数器值减至 0x40 时, 若使能了 WWDG_CFR 寄存器的 EWI 位, 则会产生一个中断跳转至 WWDG_IRQHandler() 函数, 可以在此中断函数内进行重置计数器值(喂狗)操作(不建议).
+
+​	相关寄存器:
+
+​		WWDG_CR: 控制寄存器, 使能 WWDG 以及存储计数器值
+
+​		WWDG_CFR: 配置寄存器, 设置上窗口值, 预分频值以及 EWI 中断使能
+
+​			工作频率: f = ((PCLK1 / 4096) / 2^WDGTB)
+
+​			减一个数用时:
+
+​				t = 1 / f = (4096 * 2^WDGTB) / PCLK1
+
+​			超时值计算:
+
+​				最小 <-> 最大计数个数: T[5:0] + 1 = 1 <-> 64
+
+​				(最小: 0x40 -> 0x3F) (最大: 0x7F -> 0x3F)
+
+​				在 PCLK1 = 36 MHz 时的最小-最大超时值(T = t * nCount):
+
+​					WDGTB	min			max
+
+​					0		113us		7.28ms
+
+​					1		227us		14.56ms
+
+​					2		455us		29.12ms
+
+​					3		910us		58.25ms
+
+​		WWDG_SR: 状态寄存器, EWIF 软件写 '0' 清除中断标志
 
 代码:
 
 ```c
 #include <stm32f10x.h>
+
+extern unsigned long TimingDelay;
 
 void SysTick_Configuration(void);
 void GPIOC_Configuration(void);
@@ -853,38 +909,40 @@ int main(void) {
 	GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
 	Delay_us(1000000);
     
-    WWDG_Configuration();
+    WWDG_Configuration();	// WWDG 初始化配置
+    // 现象: 上电后, LED 亮一次后一直熄灭.
+    // 验证: 修改 WWDG_IRQHandler() 函数, 取消 WWDG_SetCounter() 操作, 现象: LED 闪烁
     
     while(1) {
-        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
-        Delay_us(1000000);
-        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
-        Delay_us(1000000);
+        
     }
 }
 
 void WWDG_Configuration(void) {
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG, ENABLE);	// WWDG 时钟使能
     
-    WWDG_SetPrescaler(WWDG_Prescaler_4);
-    WWDG_SetWindowValue(0x5F);
-    WWDG_Enable(0x7F);
-    WWDG_NVIC_Configuration();
-    WWDG_ClearFlag();
-    WWDG_EnableIT();
+    WWDG_SetPrescaler(WWDG_Prescaler_4);	// 设置预分频系数
+    // WWDG_SetCounter(0x7F);	// 设置计数值, 从哪个数开始减
+    WWDG_SetWindowValue(0x5F);	// 设置上窗口值
+    WWDG_Enable(0x7F);	// 使能 WWDG 并装载计数值,	此处 WWDG_Enable 具有装载初始值的功能, 可以省略上面的 WWDG_SetCounter 函数
+    
+    WWDG_NVIC_Configuration();	// 涉及到 WWDG_IRQHandler() 中断, 需要对 NVIC 进行配置
+    
+    WWDG_ClearFlag();	// ! 清除早期的中断控制位
+    WWDG_EnableIT();	// 开启中断
 }
 void WWDG_NVIC_Configuration() {
     NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-	NVIC_InitStructure.NVIC_IRQChannel = WWDG_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannel = WWDG_IRQn;	// 使能 WWDG 的中断
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }
-void WWDG_IRQHandler() {
-	WWDG_SetCounter(0x7F);
-    WWDG_ClearFlag();
+void WWDG_IRQHandler() {	// 当 WWDG 计数值减至 0x40 时会跳转至此函数
+	WWDG_SetCounter(0x7F);	// 设置计数器值(喂狗)
+    WWDG_ClearFlag();	// 清除中断标志位, 否则一直在此中断
 }
 
 void GPIOC_Configuration() {
@@ -895,7 +953,6 @@ void GPIOC_Configuration() {
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	// 通用推挽输出
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
-
 void SysTick_Configuration() {
     while(Systick_Config(72));
     SysTick->CTRL &= ~(1<<0);
@@ -919,10 +976,14 @@ void SysTick_Handler() {
 
 例程说明:
 
+​	通过 USART 发送字符
+
 代码:
 
 ```c
 #include <stm32f10x.h>
+
+extern unsigned long TimingDelay;
 
 void SysTick_Configuration(void);
 void USART1_Configuration(void);
@@ -935,7 +996,7 @@ int main(void) {
     USART1_Configuration();	// USART1 初始化配置
     
     while(1) {
-        USART_SendData(USART1, 0x41);	// 发送 0x41 对应的字符
+        USART_SendData(USART1, 0x41);	// 发送 0x41 对应的字符 'A' (ASCII码表)
         Delay_us(1000000);
     }
 }
@@ -983,29 +1044,440 @@ void SysTick_Handler() {
 
 ```
 
-### 11
+
+
+### 11 USART 发送字符串
 
 例程说明:
+
+​	通过 USART 发送字符串
+
+
 
 代码:
 
 ```c
 #include <stm32f10x.h>
+#include <stdio.h>
+
+extern unsigned long TimingDelay;
+
+void SysTick_Configuration(void);
+void USART1_Configuration(void);
+void USART1_SendString(const unsigned char *pt);
+
 int main(void) {
+    
+    unsigned long TimingDelay;
+    
+    SysTick_Configuration();
+    USART1_Configuration();	// UASRT1 初始化配置
+    USART1_SendString();	// 通过 USART1 发送字符串
+    
     while(1) {
-        //
+        // 方式一
+        USART1_SendString("Hello World!\n");
+        // 方式二
+        printf("Hello World!\n");	// 通过改写 fputc() 发送字符串
     }
+}
+
+int fputc(int c, FILE *fp) {	// 改写 fputc(), 通过 USART1 '显示'
+    while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TXE));
+    USART_SendData(USART1, c);
+    while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TC));
+    
+    return 0;
+}
+
+void USART1_SendString(const unsigned char *pt) {	// 字符串发送
+    while(*pt) {	// 两处 while() 循环, 当发送数据寄存器为空或数据发送完成时返回 SET 值, 即当判断获取的值!=SET时, 跳出循环
+        while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TXE));	// 发送数据寄存器空标志位, 当发送缓冲区为空时, 进行下面的数据发送
+        USART_SendData(USART1, *pt);	// 发送字符
+        while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TC));	// 发送完成标志位, 循环等待 USART_DR 寄存器内数据发送完毕
+        pt++;	// 指向下一位数据
+    }
+}
+
+// USART1: PA9 TX / PA10 RX
+void USART1_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+    
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1, ENABLE);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;	// TX
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;	// RX
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    USART_InitStructure.USART_BaudRate = 115200;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+    USART_Init(USART1, &USART_InitStructure);
+    USART_Cmd(USART1, ENABLE);	// 使能 USART1 外设
+}
+
+// 延时函数
+void SysTick_Configuration() {
+    while(SysTick_Config(72));
+    SysTick->CTRL &= ~(1<<0);
+}
+void Delay_us(unsigned long nCount) {
+    TimingDelay = nCount;
+    SysTick->CTRL |= (1<<0);
+    while(TimingDelay);
+    SysTick->CTRL &= ~(1<<0);
+}
+void SysTick_Handler() {
+    if(0 != TimingDelay)
+        TimingDelay--;
 }
 
 ```
 
 
 
-### 12
+### 12 USART 接收数据
 
-### 13
+例程说明:
 
-### 14
+​	利用 UASRT 中断实现字符接收并输出
+
+代码:
+
+```c
+#include <stm32f10x.h>
+
+extern unsigned long TimingDelay;
+
+void SysTick_Configuration(void);
+void USART1_Configuration(void);
+
+int main(void) {
+    
+    unsigned long TimingDelay;
+    
+    SysTick_Configuration();
+    USART1_Configuration();
+    
+    while(1) {
+        //
+    }
+}
+
+// USART1: PA9 TX / PA10 RX
+void USART1_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+    
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1, ENABLE);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;	// TX
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;	// RX
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    USART_InitStructure.USART_BaudRate = 115200;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+    USART_Init(USART1, &USART_InitStructure);
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);	// 使能 USART 的接收中断
+    USART_Cmd(USART1, ENABLE);	// 使能 USART1 外设
+        
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;	// 使能 USART1 中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+}
+// USART1 中断
+void USART1_IRQHandler() {
+    while(SET == USART_GetFlagStatus(USART1, USART_FLAG_RXNE)) {	// 接收数据寄存器非空返回 SET
+        printf("%c", USART_ReceiveData(USART1));
+    }
+    printf("\n");
+    USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+}
+int fputc(int c, FILE *fp) {	// 改写 fputc(), 通过 USART1 '显示'
+    while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TXE));
+    USART_SendData(USART1, c);
+    while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TC));
+    
+    return 0;
+}
+
+//
+void SysTick_Configuration() {
+    while(SysTick_Config(72));
+    SysTick->CTRL &= ~(1<<0);
+}
+void Delay_us(unsigned long nCount) {
+    TimingDelay = nCount;
+    SysTick->CTRL |= (1<<0);
+    while(TimingDelay);
+    Systick->CTRL &= ~(1<<0);
+}
+void SysTick_Handler(){
+    if(0 != TimingDelay)
+        TimingDelay--;
+}
+
+```
+
+
+
+### 13 STM32低功耗模式 - 睡眠模式
+
+例程说明:
+
+​	CPU上电启动后 ->
+
+​		1. PC13位 LED 闪烁 5 次后程序调用 __WFI() 进入睡眠模式, 此时现象为: LED 间隔 1000000 us 闪烁 5 次后不再闪烁.
+
+​		2. 当外部 PA0 按键按下后(EXTI0 中断), CPU 被唤醒, 继续执行 while() 语句其余部分, PC13位 LED 闪烁 5 次后进入下一周期的 while() 循环, 此时现象为: LED 间隔 200000 us 闪烁 5 次, 间隔 1000000 us 闪烁 5 次后不再闪烁(进入睡眠模式)
+
+​		3. 重复 1. ~ 2.
+
+
+
+代码:
+
+```c
+#include <stm32f10x.h>
+
+extern unsigned long TimingDelay;
+
+void SysTick_Configuration(void);
+void GPIOC_Configuration(void);
+void PA0_EXTI0_Configuration(void);
+
+int main(void) {
+    
+    unsigned long TimingDelay;
+    unsigned int nCount;
+    
+    SysTick_Configuration();
+    GPIOC_Configuration();
+    
+    while(1) {
+        for(nCount = 0; nCount < 5; nCount++) {	// 延时间隔 1s
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+			Delay_us(1000000);
+			GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+			Delay_us(1000000);
+        }
+        // __WFI() 进入睡眠模式, 通过任一中断唤醒(PA0 EXTI0中断)
+        __WFI();
+        for(nCount = 0; nCount < 5; nCount++) {	// 延时间隔 0.2s
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+			Delay_us(200000);
+			GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+			Delay_us(200000);
+        }
+    }
+}
+
+void PA0_EXTI0_Configuration() {	// PA0_EXTI0 中断
+    GPIO_InitTypeDef GPIO_InitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+    EXTI_InitTypeDef EXTI_InitStructure;
+    
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);	// PA0 用作外部中断功能, 需开启复用功能时钟
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_EXTILineConfig(GPIO_PortSource_GPIOA, GPIO_PinSource0);	// 使用外部中断线路
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;	// 使能外部中断线 0 中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+    
+    EXTI_InitStructure.EXTI_Line = EXTI_Line0;	// 使能外部中断线 0
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;	// 中断请求
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;	// 下降沿触发
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;	// 使能
+	EXTI_Init(&EXTI_InitStructure);
+}
+
+void GPIOC_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	// 通用推挽输出
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+}
+
+// 延时
+void SysTick_Configuration() {
+    while(SysTick_Config(72));
+    StsTick->CTRL &= ~(1<<0);
+}
+void Delay_us(unsigned long nCount) {
+    TimingDelay = nCount;
+    SysTick->CTRL |= (1<<0);
+    while(TimingDelay);
+    SysTick->CTRL &= ~(1<<0);
+}
+void SysTick_Handler() {
+    if(0 != TimingDelay)
+        TimingDelay--;
+}
+
+void EXTI0_IRQHandler() {
+    EXTI_ClearITPendingBit(EXTI_Line0);	// 清除 EXTI0 线路挂起位
+}
+
+```
+
+
+
+### 14 低功耗模式 - 停止模式
+
+例程说明:
+
+​	进入停止模式会关闭 HSI / HSE, 当唤醒后 HSE 不会被唤醒, 需要重新初始化, 此工作可在中断函数中进行.
+
+​		参考代码来源: system_stm32f10x.c -> SetSysClockTo72()
+
+​	开启 PWR 时钟:
+​		RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
+
+​	调用库函数进入停止模式:
+​		PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
+
+​	停止模式唤醒方式: 任一中断
+
+​	注:
+​		调用中断后需 [清除] 中断标识位！！！
+
+代码:
+
+```c
+#include <stdio.h>
+
+extern unsigned long TimingDelay;
+void SysTick_Configuration(void);
+void GPIOC_Configuration(void);
+void PA0_EXTI0_Configuration(void);
+void SetSysClockTo72MHz(void);
+
+int main(void) {
+    
+    unsigned long TimingDelay;
+    SysTick_Configuration();
+    GPIOC_Configuration();
+	PA0_EXTI0_Configuration();
+    
+    while(1) {
+        
+        for(nCount = 0; nCount < 5; nCount++) {	// 延时间隔 0.2s
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+			Delay_us(200000);
+			GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+			Delay_us(200000);
+        }
+        // 进入停止模式
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
+        PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
+        
+        for(nCount = 0; nCount < 5; nCount++) {	// 延时间隔 0.2s
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+			Delay_us(200000);
+			GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+			Delay_us(200000);
+        }
+    }
+}
+
+void PA0_EXTI0_Configuration() {	// PA0_EXTI0 中断
+    GPIO_InitTypeDef GPIO_InitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+    EXTI_InitTypeDef EXTI_InitStructure;
+    
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);	// PA0 用作外部中断功能, 需开启复用功能时钟
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_EXTILineConfig(GPIO_PortSource_GPIOA, GPIO_PinSource0);	// 使用外部中断线路
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;	// 使能外部中断线 0 中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+    
+    EXTI_InitStructure.EXTI_Line = EXTI_Line0;	// 使能外部中断线 0
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;	// 中断请求
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;	// 下降沿触发
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;	// 使能
+	EXTI_Init(&EXTI_InitStructure);
+}
+
+void GPIOC_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	// 通用推挽输出
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+}
+
+// 延时
+void SysTick_Configuration() {
+    while(SysTick_Config(72));
+    StsTick->CTRL &= ~(1<<0);
+}
+void Delay_us(unsigned long nCount) {
+    TimingDelay = nCount;
+    SysTick->CTRL |= (1<<0);
+    while(TimingDelay);
+    SysTick->CTRL &= ~(1<<0);
+}
+void SysTick_Handler() {
+    if(0 != TimingDelay)
+        TimingDelay--;
+}
+void SetSysClockTo72MHz() {
+    //
+}
+
+void EXTI0_IRQHandler() {
+    // 进入停止模式后, HSE / HSI 时钟振荡器均关闭, 需要重新初始化
+    SetSysClockTo72MHz();
+    EXTI_ClearITPendingBit(EXTI_Line0);
+}
+
+```
+
+
 
 ### 15
 
@@ -1018,4 +1490,16 @@ int main(void) {
 ### 19
 
 数据参考来源:
+
+### 20 矩阵(Matrix)按键
+
+### 21 PWM
+
+### 22 无源蜂鸣器
+
+### 23 超声波传感器
+
+### 24
+
+
 

@@ -160,8 +160,9 @@ void SysTick_Handler(void)
   */
 
 void USART1_IRQHandler(void) {
-
 	while(SET == USART_GetFlagStatus(USART1, USART_FLAG_RXNE)) {
-		printf("%c\n", USART_ReceiveData(USART1) + 2);
+		printf("%c", USART_ReceiveData(USART1));
 	}
+	printf("\n");
+	USART_ClearITPendingBit(USART1, USART_IT_RXNE);
 }
