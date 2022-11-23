@@ -12,7 +12,7 @@ void ADC1_Configuration() {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
 	
 	
-	DMA_InitStructure.DMA_PeripheralBaseAddr = ADC1->DR;	// ADC1_DR	0X4001 2400 + 0x4c
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (0x40012400 + 0x4c);	// ADC1_DR	0X4001 2400 + 0x4c
 	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&ADC_ConvertVal;	// 发送内容的地址
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;	// 外设 -> 内存
 	DMA_InitStructure.DMA_BufferSize = 1; // 传输数据大小, 暂无单位

@@ -18,11 +18,15 @@ int main(void) {
 	
 	while(1) {
 		
-		Temperature = ((V25 - ADC_ConvertVal)/ AVG_SLOPE) + 25;
+		Temperature = ((V25 - ADC_ConvertVal) / AVG_SLOPE) + 25;
 		GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
 		Delay_us(1000000);
 		GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
 		Delay_us(1000000);
-		printf("Temperature = %.2f\n", Temperature);
+		printf("V25 = %d\n", V25);
+		printf("ADC_ConvertVal = %d\n", ADC_ConvertVal);
+		printf("AVG_SLOPE = %d\n", AVG_SLOPE);	
+		
+		printf("Temperature = %.6f\n", Temperature);
 	}
 }

@@ -16,7 +16,7 @@ int main(void) {
 	
 	while(1) {
 		//
-		for(nCount = 0; nCount < 5; nCount++) {
+		for(nCount = 0; nCount < 10; nCount++) {
 			GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
 			Delay_us(200000);
 			GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);

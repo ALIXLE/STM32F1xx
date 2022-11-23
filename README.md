@@ -1297,18 +1297,12 @@ int main(void) {
 }
 
 void PA0_EXTI0_Configuration() {	// PA0_EXTI0 中断
-    GPIO_InitTypeDef GPIO_InitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
     EXTI_InitTypeDef EXTI_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
     
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);	// PA0 用作外部中断功能, 需开启复用功能时钟
-    
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-    GPIO_EXTILineConfig(GPIO_PortSource_GPIOA, GPIO_PinSource0);	// 使用外部中断线路
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
     
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;	// 使能外部中断线 0 中断
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
@@ -1321,6 +1315,12 @@ void PA0_EXTI0_Configuration() {	// PA0_EXTI0 中断
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;	// 下降沿触发
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;	// 使能
 	EXTI_Init(&EXTI_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_EXTILineConfig(GPIO_PortSource_GPIOA, GPIO_PinSource0);	// 使用外部中断线路
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
 void GPIOC_Configuration() {
@@ -1364,11 +1364,13 @@ void EXTI0_IRQHandler() {
 
 ​		参考代码来源: system_stm32f10x.c -> SetSysClockTo72()
 
-​	开启 PWR 时钟:
-​		RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
+​	进入停止模式:
 
-​	调用库函数进入停止模式:
-​		PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
+​		①开启 PWR 时钟:
+​			RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
+
+​		②调用库函数进入停止模式:
+​			PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
 
 ​	停止模式唤醒方式: 任一中断
 
@@ -1381,14 +1383,19 @@ void EXTI0_IRQHandler() {
 #include <stdio.h>
 
 extern unsigned long TimingDelay;
+
 void SysTick_Configuration(void);
+void Delay_us(unsigned long nCount);
 void GPIOC_Configuration(void);
 void PA0_EXTI0_Configuration(void);
+void STOP_Configuration(void);
 void SetSysClockTo72MHz(void);
 
 int main(void) {
     
     unsigned long TimingDelay;
+    unsigned int nCount;
+    
     SysTick_Configuration();
     GPIOC_Configuration();
 	PA0_EXTI0_Configuration();
@@ -1402,8 +1409,7 @@ int main(void) {
 			Delay_us(200000);
         }
         // 进入停止模式
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
-        PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
+        STOP_Configuration();
         
         for(nCount = 0; nCount < 5; nCount++) {	// 延时间隔 0.2s
             GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
@@ -1414,19 +1420,13 @@ int main(void) {
     }
 }
 
-void PA0_EXTI0_Configuration() {	// PA0_EXTI0 中断
-    GPIO_InitTypeDef GPIO_InitStructure;
+void PA0_EXTI0_Configuration() {	// PA0_EXTI0 中断, 下降沿触发
     NVIC_InitTypeDef NVIC_InitStructure;
     EXTI_InitTypeDef EXTI_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
     
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);	// PA0 用作外部中断功能, 需开启复用功能时钟
-    
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-    GPIO_EXTILineConfig(GPIO_PortSource_GPIOA, GPIO_PinSource0);	// 使用外部中断线路
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
     
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;	// 使能外部中断线 0 中断
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
@@ -1439,8 +1439,18 @@ void PA0_EXTI0_Configuration() {	// PA0_EXTI0 中断
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;	// 下降沿触发
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;	// 使能
 	EXTI_Init(&EXTI_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_EXTILineConfig(GPIO_PortSource_GPIOA, GPIO_PinSource0);	// 使用外部中断线路
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
+void STOP_Configuration() {
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
+	PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
+}
 void GPIOC_Configuration() {
     GPIO_InitTypeDef GPIO_InitStructure;
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
@@ -1457,6 +1467,7 @@ void SysTick_Configuration() {
 }
 void Delay_us(unsigned long nCount) {
     TimingDelay = nCount;
+    
     SysTick->CTRL |= (1<<0);
     while(TimingDelay);
     SysTick->CTRL &= ~(1<<0);
@@ -1465,13 +1476,97 @@ void SysTick_Handler() {
     if(0 != TimingDelay)
         TimingDelay--;
 }
+// HSE TO 72MHz, 来源: system_stm32f10x.c
 void SetSysClockTo72MHz() {
-    //
+    __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
+    
+    /* SYSCLK, HCLK, PCLK2 and PCLK1 configuration ---------------------------*/
+    /* Enable HSE */
+    RCC->CR |= ((uint32_t)RCC_CR_HSEON);
+    
+    /* Wait till HSE is ready and if Time out is reached exit */
+    do {
+        HSEStatus = RCC->CR & RCC_CR_HSERDY;
+        StartUpCounter++;
+    } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+    
+    if ((RCC->CR & RCC_CR_HSERDY) != RESET) {
+        HSEStatus = (uint32_t)0x01;
+    }
+    else {
+        HSEStatus = (uint32_t)0x00;
+    }
+    
+    if (HSEStatus == (uint32_t)0x01) {
+        /* Enable Prefetch Buffer */
+        FLASH->ACR |= FLASH_ACR_PRFTBE;
+        
+        /* Flash 2 wait state */
+        FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
+        FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_2;    
+
+		/* HCLK = SYSCLK */
+		RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
+      
+		/* PCLK2 = HCLK */
+		RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE2_DIV1;
+
+		/* PCLK1 = HCLK */
+		RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV2;
+
+#ifdef STM32F10X_CL
+        /* Configure PLLs ------------------------------------------------------*/
+        /* PLL2 configuration: PLL2CLK = (HSE / 5) * 8 = 40 MHz */
+        /* PREDIV1 configuration: PREDIV1CLK = PLL2 / 5 = 8 MHz */
+
+        RCC->CFGR2 &= (uint32_t)~(RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL |
+                                    RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
+        RCC->CFGR2 |= (uint32_t)(RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL8 |
+                                    RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV5);
+
+        /* Enable PLL2 */
+        RCC->CR |= RCC_CR_PLL2ON;
+        /* Wait till PLL2 is ready */
+        while((RCC->CR & RCC_CR_PLL2RDY) == 0) {
+        }
+
+
+        /* PLL configuration: PLLCLK = PREDIV1 * 9 = 72 MHz */
+        RCC->CFGR &= (uint32_t)~(RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
+        RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | 
+                                RCC_CFGR_PLLMULL9); 
+    #else
+        /*  PLL configuration: PLLCLK = HSE * 9 = 72 MHz */
+        RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
+                                            RCC_CFGR_PLLMULL));
+        RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
+    #endif /* STM32F10X_CL */
+
+        /* Enable PLL */
+        RCC->CR |= RCC_CR_PLLON;
+
+        /* Wait till PLL is ready */
+        while((RCC->CR & RCC_CR_PLLRDY) == 0) {
+        }
+
+        /* Select PLL as system clock source */
+        RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+        RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;
+
+        /* Wait till PLL is used as system clock source */
+        while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)0x08) {
+        }
+    }
+    else {
+		/* If HSE fails to start-up, the application will have wrong clock 
+		configuration. User can add here some code to deal with this error */
+    }
 }
 
 void EXTI0_IRQHandler() {
     // 进入停止模式后, HSE / HSI 时钟振荡器均关闭, 需要重新初始化
     SetSysClockTo72MHz();
+    // 清除 EXTI 线路挂起位
     EXTI_ClearITPendingBit(EXTI_Line0);
 }
 
@@ -1479,13 +1574,424 @@ void EXTI0_IRQHandler() {
 
 
 
-### 15
+### 15 低功耗模式 - 待机模式
 
-### 16
+例程说明:
 
-### 17
+​	通过按键 PA1(低电平) 进入 待机STANDBY 模式, 通过 PA0(高电平) 上升沿唤醒
 
-### 18
+​	CPU 上电启动后 ->
+
+​		LED 间隔 0.2s 闪烁, 当 PA1 引脚检测到低电平时, 进入 EXTI1 中断并进入待机模式(STANDBY), LED 不再闪烁;
+
+​		当 PA0 检测到高电平时, CPU 被唤醒(需使能 PA0 的 WKUP 功能), LED 灯开始闪烁.
+
+
+
+代码:
+
+```c
+#include <stm32f10x.h>
+
+extern unsigned long TimingDelay;
+
+void SysTick_Configuration(void);
+void Delay_us(unsigned long nCount);
+void GPIOC_Configuration(void);
+void PA1_EXTI1_Configuration(void);
+void PA0_WKUP_Configuration(void);
+
+int main(void) {
+    
+    unsigned long TimingDelay;
+    
+    SysTick_Configuration();
+    GPIOC_Configuration();
+    PA1_EXTI1_Configuration();
+    
+    PA0_WKUP_Configuration();	// 使能引脚(PA0)唤醒功能
+    
+    while(1) {
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+        Delay_us(200000);
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+        Delay_us(200000);
+    }
+}
+
+void EXTI1_IRQHandler() {
+    if(SET == EXTI_GetITStatus(EXTI_Line1)) {	// 检查中断是否发生
+        PWR_ClearFlag(PWR_FLAG_WU);	// 清除唤醒标志位
+        PWR_EnterSTANDBYMode();	//  进入待机(STANDBY)模式
+        // ??
+        //EXTI_ClearITPendingBit(EXTI_Line1);
+    }
+}
+
+void PA0_WKUP_Configuration() {
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);	// 使能 PWR 时钟
+    PWR_WakeUpPinCmd(ENABLE);	// 使能引脚(PA0)唤醒功能
+}
+
+void PA1_EXTI1_Configuration() {
+    NVIC_InitTypeDef NVIC_InitStructure;
+    EXTI_InitTypeDef EXTI_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);	// 外部中断 使能复用时钟
+    
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+    
+    EXTI_InitStructure.EXTI_Line = EXTI_Line1;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;	// 内部上拉
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_EXTILineConfig(GPIO_PortSource_GPIOA, GPIO_PinSource1);	// 使能外部中断模式
+}
+
+void GPIOC_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	// 通用推挽输出
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+}
+
+void SysTick_Configuration() {
+    while(SysTick_Config(72));
+    SysTick->CTRL &= ~(1<<0);
+}
+void Delay_us(unsigned long nCount) {
+    TimingDelay = nCount;
+    
+    SysTick->CTRL |= (1<<0);
+    while(TimingDelay--);
+    SysTick->CTRL &= ~(1<<0);
+}
+void SysTick_Handler() {
+    if(0 != TimingDelay)
+        TimingDelay--;
+}
+
+```
+
+
+
+### 16 DMA
+
+例程说明:
+
+​	利用 DMA 将内存数据通过 USART 串口发送
+
+
+
+​	注(待解决):
+
+​		// 数据位 NCOUNT 值过大时(>=5), 串口助手不显示
+
+代码:
+
+```c
+#include <stm32f10x.h>
+#define NCOUNT 1
+
+extern unsigned long TimingDelay;
+extern unsigned char arr[NCOUNT];
+
+void SysTick_Configuration(void);
+void Delay_us(unsigned long nCount);
+void GPIOC_Configuration(void);
+void USART1_Configuration(void);
+void DMA1_Configuration(void);
+
+
+int main(void) {
+    
+    unsigned long TimingDelay;
+    unsigned char arr[NCOUNT];
+    unsigned int i;
+    
+    SysTick_Configuration();
+    GPIOC_Configuration();
+    USART1_Configuration();
+    DMA1_Configuration();
+    
+    for(i = 0; i < NCOUNT; i++)
+        arr[i] = 'A';
+    
+    USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);	// 使能 USART 的 DMA 请求
+    
+    while(1) {
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+        Delay_us(1000000);
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+        Delay_us(1000000);
+    }
+}
+
+void DMA1_Configuration() {	// DMA 初始化配置	内存数据传输至外设
+    DMA_InitTypeDef DMA_InitStructure;
+    
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);	// 使能 DMA1 时钟
+    
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (0x40013800 + 0x04);	// DMA 外设基地址: USART_DR
+    DMA_InitStructure.DMA_MemoryBaseAddr = (unit32_t)arr;	// DMA 内存基地址: unit32_t, 需要强制类型转换
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;	// 外设作为数据传输的目的地
+    DMA_InitStructure.DMA_BufferSize = NCOUNT;	// DMA 缓存的大小
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;	// 外设地址寄存器不变
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;	// 内存地址寄存器增加 
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;	// 外设数据宽度
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;	// [内存]数据宽度
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;	// 工作模式: Circular 循环缓存模式/ Normal 正常缓存模式
+    DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;	// DMA 通道的优先级
+    DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;	// 是否使能内存到内存的传输
+    DMA_Init(DMA1_Channel4, &DMA_InitStructure);	// 完成 DMA1 配置, 通道值参阅 《STM32中文参考手册_V10》-> 10.3.7 表59
+    
+    DMA_Cmd(DMA1_Channel4, ENABLE);	// 使能通道
+}
+void USART1_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+    
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1, ENABLE);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	// 复用推挽输出
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;	// 浮空输入
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    USART_InitStructure.USART_BaudRate = 115200;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+    USART_Init(USART1, &USART_InitStructure);
+	//USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);	// 所有初始化完成后, 使能 USART 的 DMA 请求
+    USART_Cmd(USART1, ENABLE);
+}
+
+void GPIOC_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	// 通用推挽输出
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+}
+// 延时
+void SyStick_Configuration() {
+    while(SysTick_Config(72));
+    SysTick->CTRL &= ~(1<<0);
+}
+void Delay_us(unsigned long nCount) {
+    TimingDelay = nCount;
+    
+    SysTick->CTRL |= (1<<0);
+    while(TimingDelay);
+    SysTick->CTRL &= ~(1<<0);
+}
+void SysTick_Handler() {
+    if(0 != TimningDelay)
+        TimingDelay--;
+}
+
+```
+
+
+
+### 17 ADC 采集 CPU 温度
+
+例程说明:
+
+​	温度传感器
+
+代码:
+
+```c
+#include <stm32f10x.h>
+#defint V25 0x5
+#define AVG_SLOPE 0x6EF
+
+extern unsigned long TimingDelay;
+extern uint16_t ADC_ConvertVal;
+
+void SysTick_Configuration(void);
+void Delay_us(unsigned long nCount);
+void GPIOC_Configuration(void);
+void USART1_Configuration(void);
+void ADC1_Configuration(void);
+
+
+int main(void) {
+    
+    unsigned long TimingDelay;
+    uint16_t ADC_ConvertVal;
+    float Temperature;
+    
+    SysTick_Configuration();
+    GPIOC_Configuration();
+    USART1_Configuration();
+    ADC1_Configuration();
+    
+    USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
+    while(1) {
+        Temperature = (((V25 - ADC_ConvertVal) / AVG_SLOPE) + 25);
+        /*
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+        Delay_us(1000000);
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+        Delay_us(1000000);
+        */
+        printf("Temperature = %.2f\n", Temperature);        
+    }
+}
+void ADC1_Configuration() {
+    DMA_InitTypeDef DMA_InitStructure;
+    ADC_InitTypeDef ADC_InitStructure;
+    
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);	// 使能 DMA1 时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+    
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (0x40012400 + 0x4C);	// DMA 外设基地址: ADC_DR
+    DMA_InitStructure.DMA_MemoryBaseAddr = (unit32_t)&ADC_ConvertVal;	// DMA 内存数据地址: unit32_t, 需要强制类型转换
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;	// 外设作为数据传输的来源
+    DMA_InitStructure.DMA_BufferSize = 1;	// DMA 缓存的大小
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;	// 外设地址寄存器不变
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;	// 内存地址寄存器不变 
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_MemoryDataSize_HalfWord;	// 外设数据宽度
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;	// [内存]数据宽度
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;	// 工作模式: Circular 循环缓存模式/ Normal 正常缓存模式
+    DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;	// DMA 通道的优先级
+    DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;	// 是否使能内存到内存的传输
+    DMA_Init(DMA1_Channel1, &DMA_InitStructure);	// 完成 DMA1 配置, 通道值参阅 《STM32中文参考手册_V10》-> 10.3.7 表59
+    DMA_Cmd(DMA1_Channel1, ENABLE);	// 使能通道
+    
+    ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;	// ADC1 / ADC2 工作在独立模式
+    ADC_InitStructure.ADC_ScanConvMode = DISABLE;	// 扫描(多通道)模式 / 单次(单通道)模式
+    ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;	// 连续 / 单次模式
+    ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;	// 由软件触发启动
+    ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;	// 数据右对齐
+    ADC_InitStructure.ADC_NbrOfChannel = 1;
+    ADC_Init(ADC1, &ADC_InitStructure);
+    
+    RCC_ADCCLKConfig(RCC_PCLK2_Div8);	// 设置 ADC 时钟, 由 PCLK 分频
+    // 设置 ADC 通道, 采样周期
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_16, 1, ADC_SampleTime_55Cycles5);	// 转换一次用时: 周期 12.5 + 55.5 = 68
+																					// 频率 72 / 8 = 9 MHz
+																					// 时间 t = 68 * (1 / 9 MHz) = 7.556 us
+	ADC_TempSensorVrefintCmd(ENABLE);	// 使能温度传感器和内部参考电压的通道
+	ADC_DMACmd(ADC1, ENABLE);	// 使能 ADC 的 DMA 请求
+	ADC_Cmd(ADC1, ENABLE);	// 使能指定的 ADC
+	
+    // ADC 校准
+	ADC_ResetCalibration(ADC1);	// 重置校准寄存器
+	while(ADC_GetResetCalibrationStatus(ADC1));	// ?? 获取重置校准寄存器的状态, 重置成功为 RESET
+	ADC_StartCalibration(ADC1);	// 开始指定 ADC 的校准状态
+	while(ADC_GetCalibrationStatus(ADC1));	// ?? 获取校准程序, RESET
+	ADC_SoftwareStartConvCmd(ADC1, ENABLE);	// 使能 ADC 的软件转换启动功能
+}
+
+void USART1_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+    
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1, ENABLE);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	// 复用推挽输出
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;	// 浮空输入
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    USART_InitStructure.USART_BaudRate = 115200;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+    USART_Init(USART1, &USART_InitStructure);
+    USART_Cmd(USART1, ENABLE);
+}
+int fputc(int c, FILE *fp) {
+	while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TXE));
+	USART_SendData(USART1, c);
+	while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TC));
+	
+	return 0;
+}
+void GPIOC_Configuration() {
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	// 通用推挽输出
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+}
+// 延时
+void SyStick_Configuration() {
+    while(SysTick_Config(72));
+    SysTick->CTRL &= ~(1<<0);
+}
+void Delay_us(unsigned long nCount) {
+    TimingDelay = nCount;
+    
+    SysTick->CTRL |= (1<<0);
+    while(TimingDelay);
+    SysTick->CTRL &= ~(1<<0);
+}
+void SysTick_Handler() {
+    if(0 != TimningDelay)
+        TimingDelay--;
+}
+
+```
+
+
+
+### 18 RTC 定时器
+
+例程说明:
+
+代码:
+
+```c
+#include <stm32f10x.h>
+
+int main(void) {
+    
+    while(1) {
+        //
+    }
+}
+```
+
+
 
 ### 19
 

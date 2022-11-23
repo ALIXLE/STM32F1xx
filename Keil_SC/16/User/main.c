@@ -14,7 +14,7 @@ int main(void) {
 	GPIOA_USATR1_Configuration();
 	DMA1_Configuration();
 	
-	for(i = 0; i < 1; i++) {
+	for(i = 0; i < NCOUNT; i++) {
 		arr[i] = 'A';
 	}
 	USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);

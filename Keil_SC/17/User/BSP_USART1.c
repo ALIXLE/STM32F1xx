@@ -31,33 +31,6 @@ void GPIOA_USATR1_Configuration() {
 	USART_Init(USART1, &USART_InitStructure);
 	
 	USART_Cmd(USART1, ENABLE);
-	//USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-}
-
-void USART1_NVIC_Configuration() {
-	
-	NVIC_InitTypeDef NVIC_InitStructure;
-	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	
-	NVIC_Init(&NVIC_InitStructure);
-}
-
-void USART_SendString(const unsigned char *pt) {
-	//
-	while(*pt)
-	{
-		// 确保发送缓冲区为空
-		while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TXE));
-		USART_SendData(USART1, *pt);
-		// 等待发送完成
-		while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TC));
-		pt++;
-	}
 }
 
 int fputc(int c, FILE *fp) {
@@ -67,10 +40,4 @@ int fputc(int c, FILE *fp) {
 	while(SET != USART_GetFlagStatus(USART1, USART_FLAG_TC));
 	
 	return 0;
-}
-
-int fgetc(FILE *stream) {
-	
-	while(SET != USART_GetFlagStatus(USART1, USART_FLAG_RXNE));
-	return (int)USART_ReceiveData(USART1);
 }
